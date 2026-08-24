@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "common.h"
 #include "chunk.h"
 #include "debug.h"
@@ -14,5 +15,8 @@ int main(int argc, const char* argv[]){
 
     disassembleChunk(&chunk, "test chunk");
     freeChunk(&chunk);
+    
+    // freeze executable file
+    getchar();
     return 0;
 }
