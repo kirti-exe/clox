@@ -39,7 +39,7 @@ static char readFile(const char* path){
 
     size_t bytesRead = fread(buffer, sizeof(char), fileSize, file);
     if(bytesRead < fileSize){
-        fprintf(strderr, "Could not read file\"%s\".\n", path);
+        fprintf(stderr, "Could not read file\"%s\".\n", path);
         exit(74);
     }
 
@@ -49,7 +49,7 @@ static char readFile(const char* path){
     return buffer;
 }
 
-staitc void runFile(const char* path){
+static void runFile(const char* path){
     char* source = readFile(path);
     InterpretResult result = interpret(source);
     free(source);

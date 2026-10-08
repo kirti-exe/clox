@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "meomry.h"
+#include "memory.h"
 #include "object.h"
 #include "table.h"
 #include "value.h"
@@ -59,7 +59,7 @@ static void adjustCapacity(Table* table, int capacity){
         entries[i].value = NIL_VAL;
     }
 
-    table->content = 0;
+    table->count = 0;
     for(int i = 0; i < table->capacity; i++){
         Entry*entry = &table->entries[i];
         if(entry->key == NULL) continue;
@@ -105,7 +105,7 @@ bool tableDelete(Table* table, ObjString* key){
 
 void tableAddAll(Table* from, Table* to){
     for(int i = 0; i < from->capacity; i++){
-        Entry* entry = &from->capacity[i];
+        Entry* entry = &from->entries[i];
         if(entry->key != NULL){
             tableSet(to, entry->key, entry->value);
         }

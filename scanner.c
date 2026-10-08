@@ -179,7 +179,7 @@ Token scanToken(){
     if(isAtEnd()) return makeToken(TOKEN_EOF);
 
     char c = advance();
-    if(isAlpha(c)) return identifier;
+    if(isAlpha(c)) return identifier();
     if(isDigit(c)) return number();
 
     switch(c){

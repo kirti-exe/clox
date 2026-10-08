@@ -14,7 +14,7 @@ static Obj* allocateObject(size_t size, ObjType type){
     Obj* object = (Obj*)reallocate(NULL, 0, size);
     object->type = type;
 
-    object->next = vm.objectts;
+    object->next = vm.objects;
     vm.objects = object;
     return object;
 }
@@ -44,7 +44,7 @@ ObjString* takeString(char* chars, int length){
         FREE_ARRAY(char, chars, length + 1);
         return interned;
     }
-    return allocateString(chars, length);
+    return allocateString(chars, length, hash);
 }
 
 ObjString* copyString(const char* chars, int length){

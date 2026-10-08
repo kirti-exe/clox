@@ -81,7 +81,7 @@ static InterpretResult run() {
         }   \
         double b = AS_NUMBER(pop()); \
         double a = AS_NUMBER(pop()); \
-        push(valueType(a or b)); \
+        push(valueType(a op b)); \
     }while(false)
 
     for (;;){

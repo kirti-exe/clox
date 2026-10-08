@@ -126,7 +126,7 @@ static void endCompiler(){
 }
 
 static void expression();
-static ParseRule8 getRule(TokenType type);
+static ParseRule* getRule(TokenType type);
 static void parsePrecedence(Precedence precedence);
 
 static void binary(){
