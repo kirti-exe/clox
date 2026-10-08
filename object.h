@@ -13,7 +13,7 @@
 
 typedef enum {
     OBJ_STRING,
-} ObjType
+} ObjType;
 
 struct Obj {
     ObjType type;
