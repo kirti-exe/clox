@@ -21,7 +21,7 @@ typedef enum{
     PREC_ASSIGNMENT,    // =
     PREV_OR,            // or
     PREC_AND,           // and  
-    PREC_EQUALITY       // == !=
+    PREC_EQUALITY,       // == !=
     PREC_COMPARISON,    // < > <= >=
     PREC_TERM,          // + -
     PREC_FACTOR,        // * /
@@ -90,6 +90,16 @@ static void consume(TokenType type, const char* message){
     errorAtCurrent(message);
 }
 
+static bool check(TokenType type){
+    return parser.current.type == type;
+}
+
+static bool match(TokenType type){
+    if(!check(type)) return false;
+    advance();
+    return true;
+}
+
 static void emitByte(uint8_t byte){
     writeChunk(currentChunk(), byte, parser.previous.line);
 }
@@ -105,15 +115,15 @@ static void emitReturn(){
 
 static uint8_t makeConstant(Value value){
     int constant = addConstant(currentChunk(), value);
-    if(constant > UIN8_MAX)[
+    if(constant > UINT8_MAX){
         error("Too many constants in one chunk");
         return 0;
-    ]
+    }
     return (uint8_t)constant;
 }
 
 static void emitConstant(Value value){
-    emitBytes(OP_CONSTANTS, makeConstant(value));
+    emitBytes(OP_CONSTANT, makeConstant(value));
 }
 
 static void endCompiler(){
@@ -126,6 +136,8 @@ static void endCompiler(){
 }
 
 static void expression();
+static void statement();
+static void declaration();
 static ParseRule* getRule(TokenType type);
 static void parsePrecedence(Precedence precedence);
 
@@ -136,25 +148,35 @@ static void binary(){
 
     switch(operatorType){
         case TOKEN_BANG_EQUAL:
-            emitBytes(OP_EQUAL, OP_NOT); break;
+            emitBytes(OP_EQUAL, OP_NOT);
+            break;
         case TOKEN_EQUAL_EQUAL:
-            emitBytes(OP_EQUAL); break;
+            emitByte(OP_EQUAL); 
+            break;
         case TOKEN_GREATER:
-            emitBytes(OP_GREATER); break;
+            emitByte(OP_GREATER); 
+            break;
         case TOKEN_GREATER_EQUAL:
-            emitBytes(OP_LESS, OP_NOT); break;
+            emitBytes(OP_LESS, OP_NOT); 
+            break;
         case TOKEN_LESS:
-            emitBytes(OP_LESS); break;
+            emitByte(OP_LESS); 
+            break;
         case TOKEN_LESS_EQUAL:
-            emitBytes(OP_GREATER, OP_NOT); break;
+            emitBytes(OP_GREATER, OP_NOT); 
+            break;
         case TOKEN_PLUS:
-            emitByte(OP_ADD); break;
+            emitByte(OP_ADD); 
+            break;
         case TOKEN_MINUS:
-            emitByte(OP_SUBTRACT); break;
+            emitByte(OP_SUBTRACT); 
+            break;
         case TOKEN_STAR:
-            emitByte(OP_MULTIPLY); break;
+            emitByte(OP_MULTIPLY); 
+            break;
         case TOKEN_SLASH:
-            emitByte(OP_DIVIDE); break;
+            emitByte(OP_DIVIDE); 
+            break;
         default: return;    // Unreachable
     }
 }
@@ -248,7 +270,7 @@ static void parsePrecedence(Precedence precedence){
 
     prefixRule();
 
-    while(precedence <= getRule(parse.current.type)->precedence){
+    while(precedence <= getRule(parser.current.type)->precedence){
         advance();
         ParseFn infixRule = getRule(parser.previous.type)->infix;
         infixRule();
@@ -263,6 +285,22 @@ static void expression(){
     parsePrecedence(PREC_ASSIGNMENT);
 }
 
+static void printStatement(){
+    expression();
+    consume(TOKEN_SEMICOLON, "Expect ';' after value.");
+    emitByte(OP_PRINT);
+}
+
+static void declaration(){
+    statement();
+}
+
+static void statement(){
+    if(mathc(TOKEN_PRINT)){
+        printStatement();
+    }
+}
+
 bool compile(const char* source, Chunk* chunk){
     initScanner(source);
     compilingChunk = chunk;
@@ -271,8 +309,11 @@ bool compile(const char* source, Chunk* chunk){
     parser.panicMode = false;
 
     advance();
-    expression();
-    consume(TOKEN_EOF, "Expect end of expression");
+    
+    while(!mamtch(TOKEN_EOF)){
+        declaration();
+    }
+
     endCompiler();
     return !parser.hadError;
 }
