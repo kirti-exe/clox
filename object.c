@@ -53,7 +53,7 @@ ObjString* copyString(const char* chars, int length){
     if(interned != NULL) return interned;
     char* heapChars = ALLOCATE(char, length + 1);
     memcpy(heapChars, chars, length);
-    heapChars[length] - '\0';
+    heapChars[length] = '\0';
     return allocateString(heapChars, length, hash);
 }
 

@@ -20,7 +20,7 @@ static void repl(){
     }
 }
 
-static char readFile(const char* path){
+static char* readFile(const char* path){
     FILE* file = fopen(path, "rb");
     if(file == NULL){
         fprintf(stderr, "Could not open file \"%s\".\n", path);
@@ -33,7 +33,7 @@ static char readFile(const char* path){
 
     char* buffer = (char*)malloc(fileSize + 1);
     if(buffer == NULL){
-        fprinf(stderr, "Not enough memory to read\"%s\".\n", path);
+        fprintf(stderr, "Not enough memory to read\"%s\".\n", path);
         exit(74);
     }
 
@@ -75,6 +75,6 @@ int main(int argc, const char* argv[]){
     freeVM();
     
     // freeze executable file
-    getchar();
+    // getchar();
     return 0;
 }
