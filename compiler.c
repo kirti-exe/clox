@@ -264,6 +264,15 @@ static void defineVariable(uint8_t global){
     emitBytes(OP_DEFINE_GLOBAL, global);
 }
 
+static void and_(bool canAssign){
+    int endJump = emitJump(OP_JUMP_IF_FALSE);
+
+    emitByte(OP_POP);
+    parsePrecedence(PREC_AND);
+
+    patchJump(endJump);
+}
+
 static void binary(bool canAssign){
     TokenType operatorType = parser.previous.type;
     ParseRule* rule = getRule(operatorType);
@@ -321,6 +330,17 @@ static void grouping(bool canAssign){
 static void number(bool canAssign){
     double value = strtod(parser.previous.start, NULL);
     emitConstant(NUMBER_VAL(value));
+}
+
+static void or_(bool canAssign){
+    int elseJump = emitJump(OP_JUMP_IF_FALSE);
+    int endJump = emitJump(OP_JUMP);
+
+    patchJump(elseJump);
+    emitByte(OP_POP);
+
+    parsePrecedence(PREC_OR);
+    patchJump(endJump); 
 }
 
 static void string(bool canAssign){
@@ -389,7 +409,7 @@ ParseRule rules[] = {
     [TOKEN_IDENTIFIER] = {variable, NULL, PREC_NONE},
     [TOKEN_STRING] = {string, NULL, PREC_NONE},
     [TOKEN_NUMBER] = {number, NULL, PREC_NONE},
-    [TOKEN_AND] = {NULL, NULL, PREC_NONE},
+    [TOKEN_AND] = {NULL, and_, PREC_AND},
     [TOKEN_CLASS] = {NULL, NULL, PREC_NONE},
     [TOKEN_ELSE] = {NULL, NULL, PREC_NONE},
     [TOKEN_FALSE] = {literal, NULL, PREC_NONE},
@@ -397,7 +417,7 @@ ParseRule rules[] = {
     [TOKEN_FUN] = {NULL, NULL, PREC_NONE},
     [TOKEN_IF] = {NULL, NULL, PREC_NONE},
     [TOKEN_NIL] = {literal, NULL, PREC_NONE},
-    [TOKEN_OR] = {NULL, NULL, PREC_NONE},
+    [TOKEN_OR] = {NULL, or_, PREC_OR},
     [TOKEN_PRINT] = {NULL, NULL, PREC_NONE},
     [TOKEN_RETURN] = {NULL, NULL, PREC_NONE},
     [TOKEN_SUPER] = {NULL, NULL, PREC_NONE},
@@ -490,6 +510,19 @@ static void printStatement(){
     emitByte(OP_PRINT);
 }
 
+static void whileStatement(){
+    consume(TOKEN_LEFT_PAREN, "Expect '(' after 'while'.");
+    expression();
+    consume(TOKEN_RIGHT_PAREN, "Expect ')' after condition.");
+
+    int exitJump = emitJump(OP_JUMP_IF_FALSE);
+    emitByte(OP_POP);
+    statement();
+    
+    patchJump(exitJump);
+    emitByte(OP_POP);
+}
+
 static void synchronize(){
     parser.panicMode = false;
 
@@ -530,6 +563,8 @@ static void statement(){
         printStatement();
     }else if(match(TOKEN_IF)){
         ifStatement();
+    }else if(match(TOKEN_WHILE)){
+        whileStatement();
     }else if(match(TOKEN_LEFT_BRACE)){
         beginScope();
         block();
