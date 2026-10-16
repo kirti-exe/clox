@@ -122,6 +122,16 @@ static void emitBytes(uint8_t byte1, uint8_t byte2){
     emitByte(byte2);
 }
 
+static void emitLoop(int loopStart){
+    emitByte(OP_LOOP);
+
+    int offset = currentChunk()->count - loopStart + 2;
+    if(offset > UINT16_MAX) error("Loop body too large.");
+
+    emitByte((offset >> 8) & 0xff);
+    emitByte(offset & 0xff);
+}
+
 static int emitJump(uint8_t instruction){
     emitByte(instruction);
     emitByte(0xff);
@@ -486,6 +496,18 @@ static void expressionStatement(){
     emitByte(OP_POP);
 }
 
+static void forStatement(){
+    consume(TOKEN_LEFT_PAREN, "Expected '(' after 'for'.");
+    consume(TOKEN_SEMICOLON, "Expect ';'.");
+
+    int loopStart = currentChunk()->count;
+    consume(TOKEN_SEMICOLON, "Expect ';'.");
+    consume(TOKEN_RIGHT_PAREN, "Expect ')' after for clauses.");
+
+    statement();
+    emitLoop(loopStart);
+}
+
 static void ifStatement(){
     consume(TOKEN_LEFT_PAREN, "Expect '(' after 'if'.)");
     expression();
@@ -511,6 +533,7 @@ static void printStatement(){
 }
 
 static void whileStatement(){
+    int loopStart = currentChunk()->count;
     consume(TOKEN_LEFT_PAREN, "Expect '(' after 'while'.");
     expression();
     consume(TOKEN_RIGHT_PAREN, "Expect ')' after condition.");
@@ -518,7 +541,7 @@ static void whileStatement(){
     int exitJump = emitJump(OP_JUMP_IF_FALSE);
     emitByte(OP_POP);
     statement();
-    
+    emitLoop(loopStart);
     patchJump(exitJump);
     emitByte(OP_POP);
 }
@@ -561,6 +584,8 @@ static void declaration(){
 static void statement(){
     if(match(TOKEN_PRINT)){
         printStatement();
+    }else if(match(TOKEN_FOR)){
+        forStatement();
     }else if(match(TOKEN_IF)){
         ifStatement();
     }else if(match(TOKEN_WHILE)){
