@@ -55,7 +55,7 @@ static void defineNative(const char* name, NativeFn function){
 void initVM(){
     resetStack();
     vm.objects = NULL;
-    vm.byteAllocated = 0;
+    vm.bytesAllocated = 0;
     vm.nextGC = 1024 * 1024;
 
     vm.grayCount = 0;
@@ -111,6 +111,11 @@ static bool callValue(Value callee, int argCount){
         switch(OBJ_TYPE(callee)){
             case OBJ_FUNCTION:
                 return call(AS_FUNCTION(callee), argCount);
+            case OBJ_CLASS: {
+                ObjClass* klass = AS_CLASS(callee);
+                vm.stackTop[-argCount - 1] = OBJ_VAL(newInstance(klass));
+                return true;
+            }
             case OBJ_CLOSURE:
                 return call(AS_CLOSURE(callee), argCount);
             case OBJ_NATIVE: {
@@ -368,6 +373,9 @@ static InterpretResult run() {
                 frame = &vm.frames[vm.frameCount - 1];
                 break;
             }
+            case OP_CLASS:
+                push(OBJ_VAL(newClass(READ_STRING())));
+                break;
         }
     }
 
