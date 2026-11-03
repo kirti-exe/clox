@@ -172,6 +172,7 @@ static void markRoots(){
 
     markTable(&vm.globals);
     markCOmpilerRoots();
+    markObject((Obj*)vm.initString);
 }
 
 static void traceReferences(){
