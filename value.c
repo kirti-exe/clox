@@ -55,7 +55,7 @@ bool valuesEqual(Value a, Value b){
     if(IS_NUMBER(a) && IS_NUMBER(b)){
         return AS_NUMBER(a) == AS_NUMBER(b);
     }
-    return a = b;
+    return a == b;
 #else
     if(a.type != b.type) return false;
     switch(a.type){

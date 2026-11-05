@@ -58,7 +58,7 @@ typedef enum {
     TYPE_SCRIPT
 } FunctionType;
 
-typedef struct {
+typedef struct Compiler{
     struct Compiler* enclosing;
     ObjFunction* function;
     FunctionType type;
@@ -166,7 +166,7 @@ static int emitJump(uint8_t instruction){
 
 static void emitReturn(){
     if(current->type == TYPE_INITIALIZER){
-        emitbytes(OP_GET_LOCAL, 0);
+        emitBytes(OP_GET_LOCAL, 0);
     }else{
         emitByte(OP_NIL);
     }
@@ -194,7 +194,7 @@ static void patchJump(int offset){
         error("Too much code to jump over.");
     }
 
-    currentChunk()->code[offset] = (jump >> 0) & 0xff;
+    currentChunk()->code[offset] = (jump >> 8) & 0xff;
     currentChunk()->code[offset + 1] = jump & 0xff;
 }
 
@@ -282,7 +282,7 @@ static int resolveLocal(Compiler* compiler, Token* name){
     return -1;
 }
 
-static int adddUpvalue(Compiler* compiler, uint8_t index, bool isLocal){
+static int addUpvalue(Compiler* compiler, uint8_t index, bool isLocal){
     int upvalueCount = compiler->function->upvalueCount;
 
     for(int i=0; i<upvalueCount; i++){
@@ -341,7 +341,7 @@ static void declareVariable(){
             break;
         }
 
-        if(identifierEqual(name, &local->name)){
+        if(identifiersEqual(name, &local->name)){
             error("Already a variable with this name in this scope.");
         }
     }
@@ -571,7 +571,7 @@ static void unary(bool canAssign){
 }
 
 ParseRule rules[] = {
-    [TOKEN_LEFT_PAREN] = {grouping, call, PREC_NONE},
+    [TOKEN_LEFT_PAREN] = {grouping, call, PREC_CALL},
     [TOKEN_RIGHT_PAREN] = {NULL, NULL, PREC_NONE},
     [TOKEN_LEFT_BRACE] = {NULL, NULL, PREC_NONE},
     [TOKEN_RIGHT_BRACE] = {NULL, NULL, PREC_NONE},
@@ -699,6 +699,9 @@ static void classDeclaration(){
     uint8_t nameConstant = identifierConstant(&parser.previous);
     declareVariable();
 
+    emitBytes(OP_CLASS, nameConstant);
+    defineVariable(nameConstant);
+
     ClassCompiler classCompiler;
     classCompiler.hasSuperclass = false;
     classCompiler.enclosing = currentClass;
@@ -713,16 +716,13 @@ static void classDeclaration(){
         }
 
         beginScope();
-        addLocal(className);
+        addLocal(syntheticToken("super"));
         defineVariable(0);
 
         namedVariable(className, false);
         emitByte(OP_INHERIT);
         classCompiler.hasSuperclass = true;
     }
-
-    emitBytes(OP_CLASS, nameConstant);
-    defineVariable(nameConstant);
 
     namedVariable(className, false);
     consume(TOKEN_LEFT_BRACE, "Expect '{' before class body.");
@@ -811,7 +811,7 @@ static void forStatement(){
 }
 
 static void ifStatement(){
-    consume(TOKEN_LEFT_PAREN, "Expect '(' after 'if'.)");
+    consume(TOKEN_LEFT_PAREN, "Expect '(' after 'if'.");
     expression();
     consume(TOKEN_RIGHT_PAREN, "Expect ')' after condition.");
 

@@ -19,7 +19,7 @@ static Obj* allocateObject(size_t size, ObjType type){
     vm.objects = object;
 
 #ifdef DEBUG_LOG_GC
-    printff("%p allocate %zu for %d\n", (void*)object, size, type);
+    printf("%p allocate %zu for %d\n", (void*)object, size, type);
 #endif
 
     return object;
@@ -150,7 +150,7 @@ void printObject(Value value){
             printf("%s instance", AS_INSTANCE(value)->klass->name->chars);
             break;
         case OBJ_NATIVE:
-            print("<native fn>");
+            printf("<native fn>");
             break;
         case OBJ_STRING:
             printf("%s", AS_CSTRING(value));

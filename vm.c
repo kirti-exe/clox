@@ -351,7 +351,7 @@ static InterpretResult run() {
                 ObjString* name = READ_STRING();
 
                 Value value;
-                if(tableget(&instance->fields, name, &value)){
+                if(tableGet(&instance->fields, name, &value)){
                     pop(); // Instance.
                     push(value);
                     break;
@@ -429,7 +429,7 @@ static InterpretResult run() {
             }
             case OP_JUMP_IF_FALSE: {
                 uint16_t offset = READ_SHORT();
-                if(isfalsey(peek(0))) frame->ip += offset;
+                if(isFalsey(peek(0))) frame->ip += offset;
                 break;
             }
             case OP_LOOP: {

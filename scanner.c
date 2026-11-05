@@ -19,9 +19,7 @@ void initScanner(const char* source){
 }
 
 static bool isAlpha(char c){
-    return (c >= 'a' && c <= 'z') ||
-           (c >= 'A' && c <= 'Z') ||
-           c == '-';
+    return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'); // || c == '-';
 }
 
 static bool isDigit(char c){
@@ -87,7 +85,9 @@ static void skipWhitespace(){
             case '/':
                 if(peekNext() == '/'){
                     // A comment goes until the end of the line
-                    while(peek() != '\n' && isAtEnd())  advance();
+                    while(peek() != '\n' && isAtEnd()) {
+                        advance();
+                    }
                 }else{
                     return;
                 }
