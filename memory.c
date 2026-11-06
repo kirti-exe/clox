@@ -12,6 +12,8 @@
 #define GC_HEAP_GROW_FACTOR 2
 
 void* reallocate(void* pointer, size_t oldSize, size_t newSize){
+    vm.bytesAllocated += newSize - oldSize;
+
     if(newSize > oldSize){
 #ifdef DEBUG_STRESS_GC
     collectGarbage();
@@ -88,11 +90,12 @@ static void blackenObject(Obj* object){
             }
             break;
         }
-        case OBJ_FUNCTION:
+        case OBJ_FUNCTION: {
             ObjFunction* function = (ObjFunction*)object;
             markObject((Obj*)function->name);
             markArray(&function->chunk.constants);
             break;
+        }
         case OBJ_INSTANCE: {
             ObjInstance* instance = (ObjInstance*)object;
             markObject((Obj*)instance->klass);

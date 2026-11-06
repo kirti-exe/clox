@@ -118,8 +118,6 @@ static bool callValue(Value callee, int argCount){
                 vm.stackTop[-argCount - 1] = bound->receiver;
                 return call(bound->method, argCount);
             }
-            case OBJ_FUNCTION:
-                return call(AS_FUNCTION(callee), argCount);
             case OBJ_CLASS: {
                 ObjClass* klass = AS_CLASS(callee);
                 vm.stackTop[-argCount - 1] = OBJ_VAL(newInstance(klass));
@@ -145,7 +143,7 @@ static bool callValue(Value callee, int argCount){
                 break; // Non-callable object type.
         }
     }
-    runtimeError("can only call functions and classes.");
+    runtimeError("Can only call functions and classes.");
     return false;
 }
 

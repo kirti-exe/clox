@@ -3,6 +3,7 @@
 
 #include "common.h"
 #include "chunk.h"
+#include "table.h"
 #include "value.h"
 
 #define OBJ_TYPE(value)         (AS_OBJ(value)->type)
