@@ -1,0 +1,17 @@
+var s = "";
+for (var i = 0; i < 5; i = i + 1) {
+  s = s + "ab";
+}
+print s;
+print "a" + "b" == "ab";
+
+class Box {
+  init(v) { this.v = v; }
+}
+
+var total = 0;
+for (var i = 0; i < 1000; i = i + 1) {
+  var b = Box(i);
+  total = total + b.v;
+}
+print total;

@@ -1,0 +1,21 @@
+fun makeCounter() {
+  var count = 0;
+  fun inc() {
+    count = count + 1;
+    return count;
+  }
+  return inc;
+}
+
+var a = makeCounter();
+var b = makeCounter();
+print a();
+print a();
+print b();
+print a();
+
+fun adder(n) {
+  fun add(x) { return x + n; }
+  return add;
+}
+print adder(10)(5);
